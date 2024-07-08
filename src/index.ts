@@ -158,39 +158,6 @@ export class ByteArray {
   }
 
   /**
-   * @description Reads a buffer function
-   */
-  private readBufferFunc(func: string, pos: number): number {
-    const methodName = `${func}${this.endian}`;
-    // @ts-ignore
-    const method = this.buffer[methodName];
-
-    if (typeof method !== "function")
-      throw new Error(`Method ${methodName} is not a function.`);
-
-    const value = method(this.position);
-    this.position += pos;
-    return value;
-  }
-
-  /**
-   * @description Writes a buffer function
-   */
-  private writeBufferFunc(value: number, func: string, pos: number) {
-    this.expand(pos);
-
-    const methodName = `${func}${this.endian}`;
-    // @ts-ignore
-    const method = this.buffer[methodName];
-
-    if (typeof method !== "function")
-      throw new Error(`Method ${methodName} is not a function.`);
-
-    method(value, this.position);
-    this.position += pos;
-  }
-
-  /**
    * @description Expands the buffer when needed
    */
   private expand(value: number) {
@@ -220,7 +187,6 @@ export class ByteArray {
   }
 
   /**
-   * TODO
    * @description Compresses the buffer
    */
   async compress(algorithm: string = CompressionAlgorithm.ZLIB) {
@@ -276,28 +242,52 @@ export class ByteArray {
    * @description Reads a double
    */
   readDouble(): number {
-    return this.readBufferFunc("readDouble", 8);
+    let value = 0;
+    if (this.getEndian() === Endian.BIG_ENDIAN)
+      value = this.buffer.readDoubleBE(this.position);
+    else value = this.buffer.readDoubleLE(this.position);
+
+    this.position += 8;
+    return value;
   }
 
   /**
    * @description Reads a float
    */
   readFloat(): number {
-    return this.readBufferFunc("readFloat", 4);
+    let value = 0;
+    if (this.getEndian() === Endian.BIG_ENDIAN)
+      value = this.buffer.readFloatBE(this.position);
+    else value = this.buffer.readFloatLE(this.position);
+
+    this.position += 4;
+    return value;
   }
 
   /**
    * @description Reads a signed int
    */
   readInt(): number {
-    return this.readBufferFunc("readInt32", 4);
+    let value = 0;
+    if (this.getEndian() === Endian.BIG_ENDIAN)
+      value = this.buffer.readInt32BE(this.position);
+    else value = this.buffer.readInt32LE(this.position);
+
+    this.position += 4;
+    return value;
   }
 
   /**
    * @description Reads a signed long
    */
   readLong(): number {
-    return this.readBufferFunc("readBigInt64", 8);
+    let value = 0;
+    if (this.getEndian() === Endian.BIG_ENDIAN)
+      value = Number(this.buffer.readBigInt64BE(this.position));
+    else value = Number(this.buffer.readBigInt64LE(this.position));
+
+    this.position += 4;
+    return value;
   }
 
   /**
@@ -343,7 +333,13 @@ export class ByteArray {
    * @description Reads a signed short
    */
   readShort(): number {
-    return this.readBufferFunc("readInt16", 2);
+    let value = 0;
+    if (this.getEndian() === Endian.BIG_ENDIAN)
+      value = this.buffer.readInt16BE(this.position);
+    else value = this.buffer.readInt16LE(this.position);
+
+    this.position += 2;
+    return value;
   }
 
   /**
@@ -357,21 +353,39 @@ export class ByteArray {
    * @description Reads an unsigned int
    */
   readUnsignedInt(): number {
-    return this.readBufferFunc("readUInt32", 4);
+    let value = 0;
+    if (this.getEndian() === Endian.BIG_ENDIAN)
+      value = this.buffer.readUInt32BE(this.position);
+    else value = this.buffer.readUInt32LE(this.position);
+
+    this.position += 4;
+    return value;
   }
 
   /**
    * @description Reads an unsigned short
    */
   readUnsignedShort(): number {
-    return this.readBufferFunc("readUInt16", 2);
+    let value = 0;
+    if (this.getEndian() === Endian.BIG_ENDIAN)
+      value = this.buffer.readUInt16BE(this.position);
+    else value = this.buffer.readUInt16LE(this.position);
+
+    this.position += 2;
+    return value;
   }
 
   /**
    * @description Reads an unsigned long
    */
   readUnsignedLong(): number {
-    return this.readBufferFunc("readBigUInt64", 8);
+    let value = 0;
+    if (this.getEndian() === Endian.BIG_ENDIAN)
+      value = Number(this.buffer.readBigUInt64BE(this.position));
+    else value = Number(this.buffer.readBigUInt64LE(this.position));
+
+    this.position += 8;
+    return value;
   }
 
   /**
@@ -459,28 +473,49 @@ export class ByteArray {
    * @description Writes a double
    */
   writeDouble(value: number) {
-    this.writeBufferFunc(value, "writeDouble", 8);
+    this.expand(8);
+
+    if (this.getEndian() === Endian.BIG_ENDIAN)
+      this.buffer.writeDoubleBE(value, this.position);
+    else this.buffer.writeDoubleLE(value, this.position);
+    this.position += 8;
   }
 
   /**
    * @description Writes a float
    */
   writeFloat(value: number) {
-    this.writeBufferFunc(value, "writeFloat", 4);
+    this.expand(4);
+
+    if (this.getEndian() === Endian.BIG_ENDIAN)
+      this.buffer.writeFloatBE(value, this.position);
+    else this.buffer.writeFloatLE(value, this.position);
+    this.position += 4;
   }
 
   /**
    * @description Writes a signed int
    */
   writeInt(value: number) {
-    this.writeBufferFunc(this.signedOverflow(value, 32), "writeInt32", 4);
+    this.expand(4);
+
+    if (this.getEndian() === Endian.BIG_ENDIAN)
+      this.buffer.writeFloatBE(this.signedOverflow(value, 32), this.position);
+    else
+      this.buffer.writeFloatLE(this.signedOverflow(value, 32), this.position);
+    this.position += 4;
   }
 
   /**
    * @description Writes a signed long
    */
   writeLong(value: number) {
-    this.writeBufferFunc(value, "writeBigInt64", 8);
+    this.expand(8);
+
+    if (this.getEndian() === Endian.BIG_ENDIAN)
+      this.buffer.writeBigInt64BE(BigInt(value), this.position);
+    else this.buffer.writeBigInt64LE(BigInt(value), this.position);
+    this.position += 8;
   }
 
   /**
@@ -511,7 +546,13 @@ export class ByteArray {
    * @description Writes a signed short
    */
   writeShort(value: number) {
-    this.writeBufferFunc(this.signedOverflow(value, 16), "writeInt16", 2);
+    this.expand(2);
+
+    if (this.getEndian() === Endian.BIG_ENDIAN)
+      this.buffer.writeInt16BE(this.signedOverflow(value, 16), this.position);
+    else
+      this.buffer.writeInt16LE(this.signedOverflow(value, 16), this.position);
+    this.position += 2;
   }
 
   /**
@@ -526,21 +567,36 @@ export class ByteArray {
    * @description Writes an unsigned int
    */
   writeUnsignedInt(value: number) {
-    this.writeBufferFunc(value, "writeUInt32", 4);
+    this.expand(4);
+
+    if (this.getEndian() === Endian.BIG_ENDIAN)
+      this.buffer.writeUInt32BE(value, this.position);
+    else this.buffer.writeUInt32LE(value, this.position);
+    this.position += 4;
   }
 
   /**
    * @description Writes an unsigned short
    */
   writeUnsignedShort(value: number) {
-    this.writeBufferFunc(value, "writeUInt16", 2);
+    this.expand(2);
+
+    if (this.getEndian() === Endian.BIG_ENDIAN)
+      this.buffer.writeUInt16BE(value, this.position);
+    else this.buffer.writeUInt16LE(value, this.position);
+    this.position += 2;
   }
 
   /**
    * @description Writes an unsigned long
    */
   writeUnsignedLong(value: number) {
-    this.writeBufferFunc(value, "writeBigUInt64", 8);
+    this.expand(8);
+
+    if (this.getEndian() === Endian.BIG_ENDIAN)
+      this.buffer.writeBigUInt64BE(BigInt(value), this.position);
+    else this.buffer.writeBigUInt64LE(BigInt(value), this.position);
+    this.position += 8;
   }
 
   /**
