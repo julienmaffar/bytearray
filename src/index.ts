@@ -161,8 +161,14 @@ export class ByteArray {
    * @description Reads a buffer function
    */
   private readBufferFunc(func: string, pos: number): number {
+    const methodName = `${func}${this.endian}`;
     // @ts-ignore
-    const value = this.buffer[`${func}${this.endian}`](this.position);
+    const method = this.buffer[methodName];
+
+    if (typeof method !== "function")
+      throw new Error(`Method ${methodName} is not a function.`);
+
+    const value = method(this.position);
     this.position += pos;
     return value;
   }
@@ -172,8 +178,15 @@ export class ByteArray {
    */
   private writeBufferFunc(value: number, func: string, pos: number) {
     this.expand(pos);
+
+    const methodName = `${func}${this.endian}`;
     // @ts-ignore
-    this.buffer[`${func}${this.#endian}`](value, this.position);
+    const method = this.buffer[methodName];
+
+    if (typeof method !== "function")
+      throw new Error(`Method ${methodName} is not a function.`);
+
+    method(value, this.position);
     this.position += pos;
   }
 
