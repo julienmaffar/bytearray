@@ -4,13 +4,20 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "keywords": [
+    "ByteArray",
+    "Actionscript",
+    "Typescript",
+    "Javascript",
+    "Node",
+    "Buffer",
+    "Binary"
+  ],
+  "author": "Julien M.",
+  "license": "MIT",
+  "description": "Node.js implementation of ByteArray's AS3 functions.",
   "devDependencies": {
     "@types/lzma-native": "^4.0.4",
     "@types/node": "^20.14.10",
